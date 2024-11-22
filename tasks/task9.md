@@ -5,7 +5,7 @@
 
 ## Задача
 
-Во время семинара на датасете [Титаник](https://www.kaggle.com/competitions/titanic/data) были получены следующие значение ошибок
+Во время семинара на датасете [Титаник](https://www.kaggle.com/competitions/titanic/data) были получены следующие значения ошибок
 - Для `DecisionTreeClassifier`
   - `precision` для выживших --- 0.79
   - `recall` для выживших --- 0.72
