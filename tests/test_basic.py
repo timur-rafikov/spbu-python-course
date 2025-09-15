@@ -16,3 +16,8 @@ def test_1():
 
 def test_2():
     assert "1" + "1" == "11"
+
+
+@pytest.mark.parametrize("a, b", [(1, 1), ("eq", "eq")])
+def test_3(a, b):
+    assert a == b
