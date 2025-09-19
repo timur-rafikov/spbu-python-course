@@ -6,7 +6,7 @@
 Курс "Программирование на Python".
 
 Полезные ссылки:
-- [Таблица с текущими результатами](https://docs.google.com/spreadsheets/d/1h29GyiGds4PvkNSZqw_1VYGAAcFNKr0j-YzTJLWTHR4/edit?usp=sharing)
+- [Таблица с текущими результатами](https://docs.google.com/spreadsheets/d/1FxIaIDetRnTDKW5Z1Q_4Y8ctyB5_spviLxrav_cJUMY/edit?usp=sharing)
 - [Список задач](https://github.com/Krekep/spbu-python-course/tree/main/tasks)
 - [Стиль кода](https://www.python.org/dev/peps/pep-0008/)
 
