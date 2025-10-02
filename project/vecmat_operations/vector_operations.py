@@ -2,6 +2,33 @@ from math import sqrt, acos
 
 
 class Vector:
+    """
+    A class for working with vectors.
+
+    Attributes:
+        vector : list[float]
+            A list representing the vector.
+
+    Methods:
+        __init__(data: list[float])
+            Initializes a Vector object with the given data.
+
+        __len__() -> int
+            Returns the length of the vector.
+
+        __mul__(other: "Vector") -> float
+            Returns the dot product of two vectors.
+
+        norm() -> float
+            Returns the norm (length) of the vector.
+
+        __xor__(other: "Vector") -> float
+            Returns the angle between two vectors in radians.
+
+        __repr__() -> str
+            Returns a string representation of the vector.
+    """
+
     def __init__(self, data: list[float]):
         """
         Initializes a Vector object
