@@ -1,3 +1,6 @@
+from typing import List, Union
+
+
 class Matrix:
     """
     A class for working with matrices.
@@ -23,14 +26,14 @@ class Matrix:
             Returns a string representation of the matrix.
     """
 
-    def __init__(self, data: list[list[float]]):
+    def __init__(self, data: List[List[Union[float, int]]]):
         """
         Initializes a Matrix object.
 
         Args:
             data (list[list[float]]): A 2D list to create the matrix
         """
-        self.matrix = data
+        self.matrix: List[List[Union[float, int]]] = data
 
     def __add__(self, other: "Matrix") -> "Matrix":
         """

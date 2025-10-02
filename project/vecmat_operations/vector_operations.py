@@ -1,3 +1,4 @@
+from typing import List, Union
 from math import sqrt, acos
 
 
@@ -29,7 +30,7 @@ class Vector:
             Returns a string representation of the vector.
     """
 
-    def __init__(self, data: list[float]):
+    def __init__(self, data: List[Union[float, int]]):
         """
         Initializes a Vector object
 
