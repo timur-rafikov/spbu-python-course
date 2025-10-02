@@ -24,12 +24,12 @@ def test_vector_initialization():
     assert vec.vector == [1.5, 2, 3], "Vector initialization failed"
 
 
-def test_vector_dot_product(vector1: "Vector", vector2: "Vector"):
-    assert vector1 * vector2 == 34.0, f"Expected 34.0, got {vector1 * vector2}"
+def test_vector_dot_product(vec1: "Vector", vec2: "Vector"):
+    assert vec1 * vec2 == 34.0, f"Expected 34.0, got {vec1 * vec2}"
 
 
-def test_vector_length(vector1: "Vector"):
-    assert len(vector1) == 3, f"Expected length 3, got {len(vector1)}"
+def test_vector_length(vec1: "Vector"):
+    assert len(vec1) == 3, f"Expected length 3, got {len(vec1)}"
 
 
 def test_vector_norm():
