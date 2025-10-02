@@ -6,6 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import pytest
 import numpy as np
 from project.vecmat_operations.matrix_operations import Matrix
+from typing import List, Union
 
 
 @pytest.fixture
@@ -21,9 +22,18 @@ def matrix2():
 # Matrix Tests
 def test_matrix_initialization():
     m = Matrix([[1.5, 2], [3, 4]])
-    assert np.array_equal(
-        m.matrix, np.array([[1.5, 2], [3, 4]])
-    ), "Matrix initialization failed"
+
+    real: List[List[Union[float, int]]] = [[1.5, 2], [3, 4]]
+    assert len(m.matrix) == len(real), "The lengths of the matrix are not equal"
+    col = len(m.matrix[0])
+    for i in range(len(real)):
+        assert (
+            col == len(m.matrix[i]) == len(real[i])
+        ), "The lengths of the matrix are not equal"
+        for j in range(len(real[0])):
+            assert (
+                m.matrix[i][j] == real[i][j]
+            ), "The elements of the matrix are not equal"
 
 
 def test_matrix_addition(matrix1: "Matrix", matrix2: "Matrix"):
