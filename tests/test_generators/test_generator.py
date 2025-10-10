@@ -8,7 +8,6 @@ from typing import Generator, List, Any, Tuple, Set, Callable, Iterable, Iterato
 from project.generators.generator import Pipeline, data_generator, convert
 from functools import reduce
 
-
 # Auxiliary functions with type annotations instead of lambdas
 def multiply_by_two(x: int) -> int:
     return x * 2
@@ -194,19 +193,23 @@ def test_pipeline_with_reduce(sample_list_data: List[int]) -> None:
 
 
 def test_pipeline_custom_aggregator(sample_list_data: List[int]) -> None:
-    pipeline: Pipeline = Pipeline(sample_list_data)
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-
-    # Using tuple as an aggregator
-    result_tuple: Tuple[int, ...] = pipeline.pipe_step(mapper).aggregate(tuple)
+    # We create separate pipelines for each aggregator to avoid repeated operations.
+    # Tuple aggregator
+    pipeline1: Pipeline = Pipeline(sample_list_data)
+    mapper1: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
+    result_tuple: Tuple[int, ...] = pipeline1.pipe_step(mapper1).aggregate(tuple)
     assert result_tuple == (2, 4, 6, 8, 10)
 
-    # Using set as an aggregator
-    result_set: Set[int] = pipeline.pipe_step(mapper).aggregate(set)
+    # Set Aggregator
+    pipeline2: Pipeline = Pipeline(sample_list_data)
+    mapper2: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
+    result_set: Set[int] = pipeline2.pipe_step(mapper2).aggregate(set)
     assert result_set == {2, 4, 6, 8, 10}
 
-    # Using sum as an aggregator
-    result_sum: int = pipeline.pipe_step(mapper).aggregate(sum)
+    # Sum aggregator
+    pipeline3: Pipeline = Pipeline(sample_list_data)
+    mapper3: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
+    result_sum: int = pipeline3.pipe_step(mapper3).aggregate(sum)
     assert result_sum == 30
 
 
@@ -260,7 +263,7 @@ def test_pipeline_complex_workflow() -> None:
 
 
 def test_pipeline_lazy_evaluation() -> None:
-    # Calculation Laziness test
+    # Calculation Laziness Test
     evaluation_count: int = 0
 
     def counting_generator() -> Generator[int, None, None]:
@@ -282,13 +285,13 @@ def test_pipeline_lazy_evaluation() -> None:
     assert result == [2, 4, 6, 8, 10]
 
 
-# Parameterized tests
+# Parameterized tests - corrected expected values
 @pytest.mark.parametrize(
     "input_data, expected",
     [
-        ([1, 2, 3, 4], [2, 4]),
-        ([5, 6, 7, 8], [10, 12]),
-        ([10, 11, 12], [20, 24]),
+        ([1, 2, 3, 4], [4, 8]),  # even numbers [2,4] -> multiplication by 2 [4,8]
+        ([5, 6, 7, 8], [12, 16]),  # even numbers [6,8] -> multiplication by 2 [12,16]
+        ([10, 11, 12], [20, 24]),  # even numbers [10,12] -> multiplication by 2 [20,24]
     ],
 )
 def test_pipeline_parameterized_filter_map(
@@ -315,6 +318,7 @@ def test_pipeline_different_aggregators(
     expected: Any,
     sample_list_data: List[int],
 ) -> None:
+    # Creating a new pipeline for each test
     pipeline: Pipeline = Pipeline(sample_list_data)
     mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
     result: Any = pipeline.pipe_step(mapper).aggregate(aggregator_func)
