@@ -15,6 +15,15 @@ from functools import reduce
 def data_generator(
     data: Union[Generator[Any, None, None], range, List[Any], Iterable[Any]]
 ) -> Generator[Any, None, None]:
+    """
+    Data generator
+
+    Args:
+        data (Union[Generator[Any, None, None], range, List[Any], Iterable[Any]]): input data
+
+    Yields:
+        Generator[Any, None, None]: The resulting generator
+    """
     if isinstance(data, Generator):
         yield from data
     else:
@@ -23,13 +32,54 @@ def data_generator(
 
 
 class Pipeline:
+    """
+    A class for lazy data processing
+
+    Attributes:
+        data : Iterable[Any]
+            Source iterable data
+
+    Methods:
+        __init__(self, data: Iterable[Any])
+            Initialization of data
+
+        __iter__(self) -> Iterator[Any]
+            Returns iterator over processed data
+
+        def pipe_step(self, func: Callable[..., Any], *args: Any, **kwargs: Any) -> "Pipeline"
+            Add a step to the Pipeline
+
+        def aggregate(
+            self,
+            aggregator: Callable[[Iterable[Any]], Any] = list,
+            *args: Any,
+            **kwargs: Any
+        ) -> Any
+            Aggregates data into an aggregator
+    """
+
     def __init__(self, data: Iterable[Any]):
+        """
+        Initialization of data
+
+        Args:
+            data (Iterable[Any]): Data
+        """
         self.data = data
         self.steps: List[
             Tuple[Callable[..., Any], Tuple[Any, ...], Dict[str, Any]]
         ] = []
 
     def __iter__(self) -> Iterator[Any]:
+        """
+        Performs all the steps
+
+        Returns:
+            _type_: iterator over processed data
+
+        Yields:
+            Iterator[Any]: source data
+        """
         it = self.data
         for func, args, kwargs in self.steps:
             it = func(*args, it, **kwargs)
@@ -38,6 +88,15 @@ class Pipeline:
     def pipe_step(
         self, func: Callable[..., Any], *args: Any, **kwargs: Any
     ) -> "Pipeline":
+        """
+        Adds a step
+
+        Args:
+            func (Callable[..., Any]): input function
+
+        Returns:
+            Pipeline: self object
+        """
         self.steps.append((func, args, kwargs))
         return self
 
@@ -47,12 +106,30 @@ class Pipeline:
         *args: Any,
         **kwargs: Any
     ) -> Any:
+        """
+        Aggregates data into an aggregator
+
+        Args:
+            aggregator (Callable[[Iterable[Any]], Any], optional): aggrefator. Defaults to list.
+
+        Returns:
+            Any: Aggregated data
+        """
         return aggregator(self.__iter__(), *args, **kwargs)
 
 
 def convert(
     func: Callable[..., Any], *args: Any, **kwargs: Any
 ) -> Callable[[Iterable[Any]], Iterator[Any]]:
+    """
+    Prepares the function for the pipeline
+
+    Args:
+        func (Callable[..., Any]): input function
+
+    Returns:
+        Callable[[Iterable[Any]], Iterator[Any]]: function that takes an iterable and returns an iterator
+    """
     if func in [filter, map, enumerate]:
         return lambda it: func(*args, it, **kwargs)
     elif func == reduce:
