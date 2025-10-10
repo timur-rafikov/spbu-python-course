@@ -1,67 +1,64 @@
-from typing import Iterable, Callable, Any, Iterator, List
+from typing import (
+    Iterable,
+    Callable,
+    Any,
+    Iterator,
+    List,
+    Union,
+    Generator,
+    Tuple,
+    Dict,
+)
+from functools import reduce
 
 
-def data_generation(start: int, stop: int, step: int = 1) -> Iterator[int]:
-    """
-    Input Data Generator
-
-    Args:
-        start (int): The beginning of the range
-        stop (int): The end of the range
-        step (int, optional): Step. Defaults to 1.
-
-    Yields:
-        Iterator[int]: The resulting generator
-    """
-    yield from range(start, stop, step)
+def data_generator(
+    data: Union[Generator[Any, None, None], range, List[Any], Iterable[Any]]
+) -> Generator[Any, None, None]:
+    if isinstance(data, Generator):
+        yield from data
+    else:
+        for el in data:
+            yield el
 
 
-def pipeline(
-    data: Iterable[Any], operations: List[Callable[[Iterable[Any]], Iterable[Any]]]
-) -> Iterable[Any]:
-    """
-    A pipeline function that sequentially applies passed operations to the input sequence
+class Pipeline:
+    def __init__(self, data: Iterable[Any]):
+        self.data = data
+        self.steps: List[
+            Tuple[Callable[..., Any], Tuple[Any, ...], Dict[str, Any]]
+        ] = []
 
-    Args:
-        data (Iterable[Any]): Input data
-        operations (list[Callable[[Iterable[Any]], Iterable[Any]]]): List of operations
+    def __iter__(self) -> Iterator[Any]:
+        it = self.data
+        for func, args, kwargs in self.steps:
+            it = func(*args, it, **kwargs)
+        return iter(it)
 
-    Returns:
-        Iterable[Any]: The resulting iterator
-    """
-    stream = data
-    for op in operations:
-        stream = op(stream)
-    return stream
+    def pipe_step(
+        self, func: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> "Pipeline":
+        self.steps.append((func, args, kwargs))
+        return self
 
-
-def aggregate(stream: Iterable[Any]) -> list[Any]:
-    """
-    Aggregator function that collect the Iterable into a collection
-
-    Args:
-        stream (Iterable[Any]): Stream
-
-    Returns:
-        list[Any]: Collection
-    """
-    return list(stream)
+    def aggregate(
+        self,
+        aggregator: Callable[[Iterable[Any]], Any] = list,
+        *args: Any,
+        **kwargs: Any
+    ) -> Any:
+        return aggregator(self.__iter__(), *args, **kwargs)
 
 
-# Example custom operation
-def custom_multiply(factor: int) -> Callable[[Iterable[Any]], Iterator[Any]]:
-    """
-    User operations. Multiplies each element by a factor
-
-    Args:
-        factor (int): What to multiply by
-
-    Returns:
-        Callable[[Iterable[Any]], Iterator[Any]]: Returns the operation
-    """
-
-    def multiplier(stream: Iterable[Any]) -> Iterator[Any]:
-        for item in stream:
-            yield item * factor
-
-    return multiplier
+def convert(
+    func: Callable[..., Any], *args: Any, **kwargs: Any
+) -> Callable[[Iterable[Any]], Iterator[Any]]:
+    if func in [filter, map, enumerate]:
+        return lambda it: func(*args, it, **kwargs)
+    elif func == reduce:
+        if len(args) < 2:
+            return lambda it: iter([func(*args, it, **kwargs)])
+        else:
+            return lambda it: iter([func(args[0], it, *args[1:], **kwargs)])
+    else:
+        return lambda it: func(it, *args, **kwargs)
