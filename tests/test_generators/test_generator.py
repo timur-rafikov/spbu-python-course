@@ -5,7 +5,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest
 from typing import Generator, List, Any, Tuple, Set, Callable, Iterable, Iterator
-from project.generators.generator import Pipeline, data_generator, convert
+from project.generators.generator import Pipeline, data_generator
 from functools import reduce
 
 # Auxiliary functions with type annotations instead of lambdas
@@ -82,134 +82,70 @@ def string_data() -> List[str]:
 
 
 # Tests for data_generator
-def test_data_generator_with_list(sample_list_data: List[int]) -> None:
-    gen: Generator[int, None, None] = data_generator(sample_list_data)
+def test_data_generator_range() -> None:
+    gen: Generator[int, None, None] = data_generator(1, 6, 1, "range")
     result: List[int] = list(gen)
     assert result == [1, 2, 3, 4, 5]
 
 
-def test_data_generator_with_range(sample_range_data: range) -> None:
-    gen: Generator[int, None, None] = data_generator(sample_range_data)
+def test_data_generator_fibonacci() -> None:
+    gen: Generator[int, None, None] = data_generator(0, 20, 1, "fibonacci")
     result: List[int] = list(gen)
-    assert result == [1, 2, 3, 4, 5]
+    assert result == [0, 1, 1, 2, 3, 5, 8, 13]
 
 
-def test_data_generator_with_generator(
-    sample_generator_data: Generator[int, None, None]
-) -> None:
-    gen: Generator[int, None, None] = data_generator(sample_generator_data)
+def test_data_generator_random() -> None:
+    gen: Generator[int, None, None] = data_generator(1, 6, 1, "random")
     result: List[int] = list(gen)
-    assert result == [1, 2, 3, 4, 5]
+    assert len(result) == 5
+    assert all(1 <= x <= 5 for x in result)
 
 
-# Tests for the convert function
-def test_convert_map() -> None:
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: List[int] = list(mapper([1, 2, 3]))
-    assert result == [2, 4, 6]
-
-
-def test_convert_filter() -> None:
-    filterer: Callable[[Iterable[int]], Iterator[int]] = convert(filter, is_even)
-    result: List[int] = list(filterer([1, 2, 3, 4]))
-    assert result == [2, 4]
-
-
-def test_convert_enumerate() -> None:
-    enumerator: Callable[[Iterable[str]], Iterator[Tuple[int, str]]] = convert(
-        enumerate
-    )
-    result: List[Tuple[int, str]] = list(enumerator(["a", "b"]))
-    assert result == [(0, "a"), (1, "b")]
-
-
-def test_convert_enumerate_with_start() -> None:
-    enumerator: Callable[[Iterable[str]], Iterator[Tuple[int, str]]] = convert(
-        enumerate, start=1
-    )
-    result: List[Tuple[int, str]] = list(enumerator(["a", "b"]))
-    assert result == [(1, "a"), (2, "b")]
-
-
-def test_convert_reduce() -> None:
-    reducer: Callable[[Iterable[int]], Iterator[int]] = convert(reduce, sum_reducer)
-    result: List[int] = list(reducer([1, 2, 3]))
-    assert result == [6]
-
-
-def test_convert_reduce_with_initial() -> None:
-    reducer: Callable[[Iterable[int]], Iterator[int]] = convert(reduce, sum_reducer, 10)
-    result: List[int] = list(reducer([1, 2, 3]))
-    assert result == [16]
-
-
-def test_convert_custom_function() -> None:
-    custom_converter: Callable[[Iterable[int]], Iterator[int]] = convert(
-        custom_multiplier, 3
-    )
-    result: List[int] = list(custom_converter([1, 2, 3]))
-    assert result == [3, 6, 9]
-
-
-# Pipeline tests using convert
+# Pipeline tests with direct function calls
 def test_pipeline_single_map_step(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: List[int] = pipeline.pipe_step(mapper).aggregate()
+    result: List[int] = pipeline.pipe_step(map, multiply_by_two).aggregate()
     assert result == [2, 4, 6, 8, 10]
 
 
 def test_pipeline_single_filter_step(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    filterer: Callable[[Iterable[int]], Iterator[int]] = convert(filter, is_even)
-    result: List[int] = pipeline.pipe_step(filterer).aggregate()
+    result: List[int] = pipeline.pipe_step(filter, is_even).aggregate()
     assert result == [2, 4]
 
 
 def test_pipeline_multiple_steps(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    filterer: Callable[[Iterable[int]], Iterator[int]] = convert(
-        filter, greater_than_two
-    )
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_ten)
-    result: List[int] = pipeline.pipe_step(filterer).pipe_step(mapper).aggregate()
+    result: List[int] = pipeline.pipe_step(filter, greater_than_two).pipe_step(map, multiply_by_ten).aggregate()
     assert result == [30, 40, 50]
 
 
 def test_pipeline_with_enumerate(string_data: List[str]) -> None:
     pipeline: Pipeline = Pipeline(string_data)
-    enumerator: Callable[[Iterable[str]], Iterator[Tuple[int, str]]] = convert(
-        enumerate, start=1
-    )
-    result: List[Tuple[int, str]] = pipeline.pipe_step(enumerator).aggregate()
+    result: List[Tuple[int, str]] = pipeline.pipe_step(enumerate, start=1).aggregate()
     assert result == [(1, "a"), (2, "b"), (3, "c"), (4, "d"), (5, "e")]
 
 
 def test_pipeline_with_reduce(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    reducer: Callable[[Iterable[int]], Iterator[int]] = convert(reduce, sum_reducer)
-    result: List[int] = pipeline.pipe_step(reducer).aggregate()
+    result: List[int] = pipeline.pipe_step(reduce, sum_reducer).aggregate()
     assert result == [15]
 
 
 def test_pipeline_custom_aggregator(sample_list_data: List[int]) -> None:
-    # We create separate pipelines for each aggregator to avoid repeated operations.
     # Tuple aggregator
     pipeline1: Pipeline = Pipeline(sample_list_data)
-    mapper1: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result_tuple: Tuple[int, ...] = pipeline1.pipe_step(mapper1).aggregate(tuple)
+    result_tuple: Tuple[int, ...] = pipeline1.pipe_step(map, multiply_by_two).aggregate(tuple)
     assert result_tuple == (2, 4, 6, 8, 10)
 
     # Set Aggregator
     pipeline2: Pipeline = Pipeline(sample_list_data)
-    mapper2: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result_set: Set[int] = pipeline2.pipe_step(mapper2).aggregate(set)
+    result_set: Set[int] = pipeline2.pipe_step(map, multiply_by_two).aggregate(set)
     assert result_set == {2, 4, 6, 8, 10}
 
     # Sum aggregator
     pipeline3: Pipeline = Pipeline(sample_list_data)
-    mapper3: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result_sum: int = pipeline3.pipe_step(mapper3).aggregate(sum)
+    result_sum: int = pipeline3.pipe_step(map, multiply_by_two).aggregate(sum)
     assert result_sum == 30
 
 
@@ -217,22 +153,19 @@ def test_pipeline_with_generator_input(
     sample_generator_data: Generator[int, None, None]
 ) -> None:
     pipeline: Pipeline = Pipeline(sample_generator_data)
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, add_ten)
-    result: List[int] = pipeline.pipe_step(mapper).aggregate()
+    result: List[int] = pipeline.pipe_step(map, add_ten).aggregate()
     assert result == [11, 12, 13, 14, 15]
 
 
 def test_pipeline_with_range_input(sample_range_data: range) -> None:
     pipeline: Pipeline = Pipeline(sample_range_data)
-    filterer: Callable[[Iterable[int]], Iterator[int]] = convert(filter, is_odd)
-    result: List[int] = pipeline.pipe_step(filterer).aggregate()
+    result: List[int] = pipeline.pipe_step(filter, is_odd).aggregate()
     assert result == [1, 3, 5]
 
 
 def test_pipeline_iteration(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_three)
-    pipeline.pipe_step(mapper)
+    pipeline.pipe_step(map, multiply_by_three)
 
     result: List[int] = []
     for item in pipeline:
@@ -246,16 +179,10 @@ def test_pipeline_complex_workflow() -> None:
     pipeline: Pipeline = Pipeline(range(1, 11))  # 1-10
 
     # Filter the even numbers, multiply by 3, and number them.
-    filter_step: Callable[[Iterable[int]], Iterator[int]] = convert(filter, is_even)
-    map_step: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_three)
-    enumerate_step: Callable[[Iterable[int]], Iterator[Tuple[int, int]]] = convert(
-        enumerate, start=100
-    )
-
     result: List[Tuple[int, int]] = (
-        pipeline.pipe_step(filter_step)  # 2, 4, 6, 8, 10
-        .pipe_step(map_step)  # 6, 12, 18, 24, 30
-        .pipe_step(enumerate_step)  # (100,6), (101,12), etc.
+        pipeline.pipe_step(filter, is_even)  # 2, 4, 6, 8, 10
+        .pipe_step(map, multiply_by_three)  # 6, 12, 18, 24, 30
+        .pipe_step(enumerate, start=100)  # (100,6), (101,12), etc.
         .aggregate()
     )
 
@@ -273,8 +200,7 @@ def test_pipeline_lazy_evaluation() -> None:
             yield i
 
     pipeline: Pipeline = Pipeline(counting_generator())
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    pipeline.pipe_step(mapper)
+    pipeline.pipe_step(map, multiply_by_two)
 
     # Nothing is calculated before the iteration
     assert evaluation_count == 0
@@ -285,7 +211,7 @@ def test_pipeline_lazy_evaluation() -> None:
     assert result == [2, 4, 6, 8, 10]
 
 
-# Parameterized tests - corrected expected values
+# Parameterized tests
 @pytest.mark.parametrize(
     "input_data, expected",
     [
@@ -298,9 +224,7 @@ def test_pipeline_parameterized_filter_map(
     input_data: List[int], expected: List[int]
 ) -> None:
     pipeline: Pipeline = Pipeline(input_data)
-    filter_step: Callable[[Iterable[int]], Iterator[int]] = convert(filter, is_even)
-    map_step: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: List[int] = pipeline.pipe_step(filter_step).pipe_step(map_step).aggregate()
+    result: List[int] = pipeline.pipe_step(filter, is_even).pipe_step(map, multiply_by_two).aggregate()
     assert result == expected
 
 
@@ -320,8 +244,7 @@ def test_pipeline_different_aggregators(
 ) -> None:
     # Creating a new pipeline for each test
     pipeline: Pipeline = Pipeline(sample_list_data)
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: Any = pipeline.pipe_step(mapper).aggregate(aggregator_func)
+    result: Any = pipeline.pipe_step(map, multiply_by_two).aggregate(aggregator_func)
     assert result == expected
 
 
@@ -329,9 +252,9 @@ def test_pipeline_different_aggregators(
 def test_pipeline_method_chaining(sample_list_data: List[int]) -> None:
     result: List[int] = (
         Pipeline(sample_list_data)
-        .pipe_step(convert(filter, greater_than_two))
-        .pipe_step(convert(map, multiply_by_ten))
-        .pipe_step(convert(map, add_one))
+        .pipe_step(filter, greater_than_two)
+        .pipe_step(map, multiply_by_ten)
+        .pipe_step(map, add_one)
         .aggregate()
     )
     assert result == [31, 41, 51]
@@ -339,13 +262,17 @@ def test_pipeline_method_chaining(sample_list_data: List[int]) -> None:
 
 def test_pipeline_empty_data() -> None:
     pipeline: Pipeline = Pipeline([])
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: List[int] = pipeline.pipe_step(mapper).aggregate()
+    result: List[int] = pipeline.pipe_step(map, multiply_by_two).aggregate()
     assert result == []
 
 
 def test_pipeline_single_element() -> None:
     pipeline: Pipeline = Pipeline([42])
-    mapper: Callable[[Iterable[int]], Iterator[int]] = convert(map, multiply_by_two)
-    result: List[int] = pipeline.pipe_step(mapper).aggregate()
+    result: List[int] = pipeline.pipe_step(map, multiply_by_two).aggregate()
     assert result == [84]
+
+
+def test_pipeline_custom_function(sample_list_data: List[int]) -> None:
+    pipeline: Pipeline = Pipeline(sample_list_data)
+    result: List[int] = pipeline.pipe_step(custom_multiplier, 3).aggregate()
+    assert result == [3, 6, 9, 12, 15]

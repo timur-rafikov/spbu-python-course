@@ -10,25 +10,40 @@ from typing import (
     Dict,
 )
 from functools import reduce
+import random
 
 
 def data_generator(
-    data: Union[Generator[Any, None, None], range, List[Any], Iterable[Any]]
+    start: int = 0,
+    end: int = 10,
+    step: int = 1,
+    data_type: str = "range"
 ) -> Generator[Any, None, None]:
     """
-    Data generator
+    Generates data based on specified parameters
 
     Args:
-        data (Union[Generator[Any, None, None], range, List[Any], Iterable[Any]]): input data
+        start (int): Starting value for generation
+        end (int): Ending value for generation  
+        step (int): Step size for generation
+        data_type (str): Type of data to generate ("range", "random", "fibonacci")
 
     Yields:
-        Generator[Any, None, None]: The resulting generator
+        Generator[Any, None, None]: Generated data values
     """
-    if isinstance(data, Generator):
-        yield from data
-    else:
-        for el in data:
-            yield el
+    if data_type == "range":
+        current = start
+        while current < end:
+            yield current
+            current += step
+    elif data_type == "random":
+        for _ in range((end - start) // step):
+            yield random.randint(start, end - 1)
+    elif data_type == "fibonacci":
+        a, b = 0, 1
+        while a < end:
+            yield a
+            a, b = b, a + b
 
 
 class Pipeline:
@@ -75,14 +90,19 @@ class Pipeline:
         Performs all the steps
 
         Returns:
-            _type_: iterator over processed data
-
-        Yields:
-            Iterator[Any]: source data
+            Iterator[Any]: iterator over processed data
         """
         it = self.data
         for func, args, kwargs in self.steps:
-            it = func(*args, it, **kwargs)
+            if func == reduce:
+                if len(args) < 2:
+                    it = iter([func(*args, it, **kwargs)])
+                else:
+                    it = iter([func(args[0], it, *args[1:], **kwargs)])
+            elif func in [filter, map, enumerate]:
+                it = func(*args, it, **kwargs)
+            else:
+                it = func(it, *args, **kwargs)
         return iter(it)
 
     def pipe_step(
@@ -118,24 +138,3 @@ class Pipeline:
         return aggregator(self.__iter__(), *args, **kwargs)
 
 
-def convert(
-    func: Callable[..., Any], *args: Any, **kwargs: Any
-) -> Callable[[Iterable[Any]], Iterator[Any]]:
-    """
-    Prepares the function for the pipeline
-
-    Args:
-        func (Callable[..., Any]): input function
-
-    Returns:
-        Callable[[Iterable[Any]], Iterator[Any]]: function that takes an iterable and returns an iterator
-    """
-    if func in [filter, map, enumerate]:
-        return lambda it: func(*args, it, **kwargs)
-    elif func == reduce:
-        if len(args) < 2:
-            return lambda it: iter([func(*args, it, **kwargs)])
-        else:
-            return lambda it: iter([func(args[0], it, *args[1:], **kwargs)])
-    else:
-        return lambda it: func(it, *args, **kwargs)
