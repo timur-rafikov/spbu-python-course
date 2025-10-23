@@ -116,7 +116,11 @@ def test_pipeline_single_filter_step(sample_list_data: List[int]) -> None:
 
 def test_pipeline_multiple_steps(sample_list_data: List[int]) -> None:
     pipeline: Pipeline = Pipeline(sample_list_data)
-    result: List[int] = pipeline.pipe_step(filter, greater_than_two).pipe_step(map, multiply_by_ten).aggregate()
+    result: List[int] = (
+        pipeline.pipe_step(filter, greater_than_two)
+        .pipe_step(map, multiply_by_ten)
+        .aggregate()
+    )
     assert result == [30, 40, 50]
 
 
@@ -135,7 +139,9 @@ def test_pipeline_with_reduce(sample_list_data: List[int]) -> None:
 def test_pipeline_custom_aggregator(sample_list_data: List[int]) -> None:
     # Tuple aggregator
     pipeline1: Pipeline = Pipeline(sample_list_data)
-    result_tuple: Tuple[int, ...] = pipeline1.pipe_step(map, multiply_by_two).aggregate(tuple)
+    result_tuple: Tuple[int, ...] = pipeline1.pipe_step(map, multiply_by_two).aggregate(
+        tuple
+    )
     assert result_tuple == (2, 4, 6, 8, 10)
 
     # Set Aggregator
@@ -224,7 +230,9 @@ def test_pipeline_parameterized_filter_map(
     input_data: List[int], expected: List[int]
 ) -> None:
     pipeline: Pipeline = Pipeline(input_data)
-    result: List[int] = pipeline.pipe_step(filter, is_even).pipe_step(map, multiply_by_two).aggregate()
+    result: List[int] = (
+        pipeline.pipe_step(filter, is_even).pipe_step(map, multiply_by_two).aggregate()
+    )
     assert result == expected
 
 

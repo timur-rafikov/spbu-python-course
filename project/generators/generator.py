@@ -14,17 +14,14 @@ import random
 
 
 def data_generator(
-    start: int = 0,
-    end: int = 10,
-    step: int = 1,
-    data_type: str = "range"
+    start: int = 0, end: int = 10, step: int = 1, data_type: str = "range"
 ) -> Generator[Any, None, None]:
     """
     Generates data based on specified parameters
 
     Args:
         start (int): Starting value for generation
-        end (int): Ending value for generation  
+        end (int): Ending value for generation
         step (int): Step size for generation
         data_type (str): Type of data to generate ("range", "random", "fibonacci")
 
@@ -136,5 +133,3 @@ class Pipeline:
             Any: Aggregated data
         """
         return aggregator(self.__iter__(), *args, **kwargs)
-
-
