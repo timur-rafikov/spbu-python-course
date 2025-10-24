@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict, Any
 from project.game.player import Player
 from project.game.strategies import Strategy
 from project.game.dice import roll_multiple_dice
@@ -79,7 +79,7 @@ class Game:
         self.game_over: bool = False
         self.winner: Optional[Player] = None
 
-    def play_turn(self) -> dict:
+    def play_turn(self) -> Dict[str, Any]:
         """
         Plays a complete turn for the current player.
 
@@ -91,7 +91,7 @@ class Game:
         player.reset_round_score()
 
         num_dice = 6
-        turn_info = {
+        turn_info: Dict[str, Any] = {
             "player": player.name,
             "rolls": [],
             "zonk": False,
@@ -101,7 +101,7 @@ class Game:
 
         while True:
             dice = roll_multiple_dice(num_dice)
-            roll_info = {"dice": dice, "num_dice": num_dice}
+            roll_info: Dict[str, Any] = {"dice": dice, "num_dice": num_dice}
 
             if ScoreCalculator.is_zonk(dice):
                 roll_info["zonk"] = True
@@ -174,7 +174,7 @@ class Game:
 
         return self.winner
 
-    def get_game_state(self) -> dict:
+    def get_game_state(self) -> Dict[str, Any]:
         """
         Returns the current state of the game.
 
