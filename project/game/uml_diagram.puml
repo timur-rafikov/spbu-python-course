@@ -1,0 +1,118 @@
+@startuml Zonk Game Class Diagram
+
+skinparam classAttributeIconSize 0
+skinparam backgroundColor #FEFEFE
+
+' Dice class
+class Dice {
+  - value: int
+  __
+  + __init__()
+  + roll(): int
+  + get_value(): int
+  + __repr__(): str
+}
+
+' ScoreCalculator class
+class ScoreCalculator {
+  {static}
+  __
+  + {static} calculate_score(dice: list[int]): int
+  + {static} get_scoring_dice(dice: list[int]): list[int]
+  + {static} is_zonk(dice: list[int]): bool
+  + {static} find_best_scoring_combination(dice: list[int]): tuple[int, list[int]]
+  + {static} get_possible_scoring_options(dice: list[int]): list[tuple[int, list[int]]]
+  - {static} _is_straight(dice: list[int]): bool
+  - {static} _is_three_pairs(dice: list[int]): bool
+}
+
+' Player class
+class Player {
+  - name: str
+  - total_score: int
+  - round_score: int
+  __
+  + __init__(name: str)
+  + add_round_score(score: int): void
+  + bank_round_score(): void
+  + reset_round_score(): void
+  + get_total_score(): int
+  + get_round_score(): int
+  + __repr__(): str
+}
+
+' Abstract Strategy class
+abstract class Strategy {
+  {abstract}
+  __
+  + {abstract} should_continue(round_score: int, num_dice: int, total_score: int): bool
+  + {abstract} choose_dice_to_keep(dice: list[int], scoring_dice: list[int]): list[int]
+}
+
+' ConservativeStrategy class
+class ConservativeStrategy {
+  __
+  + should_continue(round_score: int, num_dice: int, total_score: int): bool
+  + choose_dice_to_keep(dice: list[int], scoring_dice: list[int]): list[int]
+}
+
+' AggressiveStrategy class
+class AggressiveStrategy {
+  __
+  + should_continue(round_score: int, num_dice: int, total_score: int): bool
+  + choose_dice_to_keep(dice: list[int], scoring_dice: list[int]): list[int]
+}
+
+' BalancedStrategy class
+class BalancedStrategy {
+  __
+  + should_continue(round_score: int, num_dice: int, total_score: int): bool
+  + choose_dice_to_keep(dice: list[int], scoring_dice: list[int]): list[int]
+}
+
+' Game class
+class Game {
+  - players: list[Player]
+  - strategies: list[Strategy]
+  - target_score: int
+  - current_player_index: int
+  - round_number: int
+  - game_over: bool
+  - winner: Player | None
+  __
+  + __init__(players: list[Player], strategies: list[Strategy], target_score: int)
+  + play_turn(): dict
+  + play_game(max_rounds: int | None): Player | None
+  + get_game_state(): dict
+  + display_game_state(): str
+  + is_game_over(): bool
+  + get_winner(): Player | None
+}
+
+' Inheritance relationships
+Strategy <|-- ConservativeStrategy
+Strategy <|-- AggressiveStrategy
+Strategy <|-- BalancedStrategy
+
+' Composition and Association relationships
+Game *-- "3..*" Player : contains
+Game o-- "3..*" Strategy : uses
+Game ..> ScoreCalculator : uses
+Game ..> Dice : uses
+
+note right of Strategy
+  Abstract base class for
+  bot decision-making strategies
+end note
+
+note right of ScoreCalculator
+  Utility class with static methods
+  for calculating dice scores
+end note
+
+note bottom of Game
+  Main game controller that manages
+  players, strategies, and game flow
+end note
+
+@enduml
